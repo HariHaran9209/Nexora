@@ -2,11 +2,7 @@
 # Supports Tailscale MagicDNS and local IP routing with HTTP/2 and WebSocket streaming
 
 :80, :443 {
-    # Serve pre-built React frontend assets
-    root * /var/nexora/web/dist
-    file_server
-
-    # API endpoints reverse proxy to Node.js backend
+    # Reverse proxy API requests to Node.js backend
     handle /api/* {
         reverse_proxy 127.0.0.1:5000 {
             header_up X-Real-IP {remote_host}
@@ -23,6 +19,10 @@
         }
     }
 
-    # SPA routing fallback for React router
-    try_files {path} /index.html
+    # Serve pre-built React frontend assets and SPA fallback for React router
+    handle {
+        root * /var/nexora/web/dist
+        try_files {path} /index.html
+        file_server
+    }
 }
