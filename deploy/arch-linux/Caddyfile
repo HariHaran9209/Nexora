@@ -1,0 +1,28 @@
+# Caddy Reverse Proxy Configuration for Nexora
+# Supports Tailscale MagicDNS and local IP routing with HTTP/2 and WebSocket streaming
+
+:80, :443 {
+    # Serve pre-built React frontend assets
+    root * /var/nexora/web/dist
+    file_server
+
+    # API endpoints reverse proxy to Node.js backend
+    handle /api/* {
+        reverse_proxy 127.0.0.1:5000 {
+            header_up X-Real-IP {remote_host}
+            header_up X-Forwarded-For {remote_host}
+            header_up X-Forwarded-Proto {scheme}
+        }
+    }
+
+    # WebSocket for real-time upload progress and multi-device sync
+    handle /socket.io/* {
+        reverse_proxy 127.0.0.1:5000 {
+            header_up Upgrade {>Upgrade}
+            header_up Connection {>Connection}
+        }
+    }
+
+    # SPA routing fallback for React router
+    try_files {path} /index.html
+}

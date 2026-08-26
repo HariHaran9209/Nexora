@@ -1,0 +1,23 @@
+{
+  "name": "nexora-desktop-sync",
+  "version": "1.0.0",
+  "description": "Nexora Windows 11 Single-Folder Two-Way Sync Client",
+  "main": "src/index.js",
+  "bin": {
+    "nexora-sync": "./src/index.js"
+  },
+  "scripts": {
+    "start": "node src/index.js",
+    "setup": "node src/setup.js"
+  },
+  "keywords": ["sync", "nexora", "drive", "windows", "chokidar"],
+  "author": "Nexora",
+  "license": "MIT",
+  "dependencies": {
+    "axios": "^1.7.9",
+    "chokidar": "^4.0.3",
+    "dotenv": "^16.4.7",
+    "form-data": "^4.0.2",
+    "fs-extra": "^11.3.0"
+  }
+}

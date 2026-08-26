@@ -1,0 +1,33 @@
+[Unit]
+Description=Nexora Personal Cloud Server (Drive + Spotify + VLC)
+After=network.target mongodb.service tailscaled.service
+Wants=mongodb.service
+
+[Service]
+Type=simple
+User=nexora
+Group=nexora
+WorkingDirectory=/var/nexora/server
+ExecStart=/usr/bin/node /var/nexora/server/src/server.js
+Restart=always
+RestartSec=5s
+Environment=NODE_ENV=production
+Environment=PORT=5000
+Environment=HOST=0.0.0.0
+Environment=STORAGE_ROOT=/var/nexora/storage
+Environment=MONGO_URI=mongodb://127.0.0.1:27017/nexora
+EnvironmentFile=-/var/nexora/server/.env
+
+# Security & Sandboxing
+ProtectSystem=full
+ProtectHome=read-only
+PrivateTmp=true
+NoNewPrivileges=true
+
+# Resource limits (optimized for AMD PRO A4-4350B laptop)
+LimitNOFILE=65536
+MemoryHigh=1200M
+MemoryMax=1600M
+
+[Install]
+WantedBy=multi-user.target

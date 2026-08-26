@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">Nexora Backup</string>
+    <string name="sync_channel_name">Nexora Background Backup</string>
+    <string name="sync_channel_desc">Shows background camera and media upload status</string>
+</resources>
