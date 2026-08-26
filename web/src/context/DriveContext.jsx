@@ -55,14 +55,21 @@ export const DriveProvider = ({ children }) => {
       };
 
       const res = await filesApi.getFiles(queryParams);
-      const data = res.data.data;
-      setFiles(data.files || []);
-      setFolders(data.folders || []);
-      setCurrentFolder(data.currentFolder || null);
-      setBreadcrumbs(data.breadcrumbs || [{ id: null, name: 'Drive' }]);
-      setPagination(data.pagination || { page: 1, limit: 100, totalFiles: 0, totalPages: 1 });
+      if (res?.data?.success && res.data.data) {
+        const data = res.data.data;
+        setFiles(Array.isArray(data.files) ? data.files : []);
+        setFolders(Array.isArray(data.folders) ? data.folders : []);
+        setCurrentFolder(data.currentFolder || null);
+        setBreadcrumbs(Array.isArray(data.breadcrumbs) ? data.breadcrumbs : [{ id: null, name: 'Drive' }]);
+        setPagination(data.pagination || { page: 1, limit: 100, totalFiles: 0, totalPages: 1 });
+      } else {
+        setFiles([]);
+        setFolders([]);
+      }
     } catch (err) {
-      console.error('Error fetching files:', err);
+      console.warn('Files fetch notice:', err.response?.data?.error || err.message);
+      setFiles([]);
+      setFolders([]);
     } finally {
       setLoading(false);
     }

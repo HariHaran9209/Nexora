@@ -62,6 +62,19 @@ app.use('/api/video', videoRoutes);
 app.use('/api/sync', syncRoutes);
 app.use('/api/system', systemRoutes);
 
+// Serve pre-built React frontend if dist exists
+const fs = require('fs-extra');
+const distPath = path.resolve(__dirname, '../../web/dist');
+if (fs.existsSync(distPath)) {
+  app.use(express.static(distPath));
+  app.get('*', (req, res, next) => {
+    if (req.path.startsWith('/api') || req.path.startsWith('/socket.io') || req.path.startsWith('/health')) {
+      return next();
+    }
+    res.sendFile(path.join(distPath, 'index.html'));
+  });
+}
+
 // Global Error Handler
 app.use(errorHandler);
 

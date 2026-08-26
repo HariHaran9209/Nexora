@@ -18,7 +18,7 @@ export const AuthProvider = ({ children }) => {
     const checkAuthStatus = async () => {
       try {
         const statusRes = await authApi.getStatus();
-        if (statusRes.data.setupRequired) {
+        if (statusRes?.data?.setupRequired) {
           setSetupRequired(true);
           setLoading(false);
           return;
@@ -26,16 +26,20 @@ export const AuthProvider = ({ children }) => {
 
         if (token) {
           const meRes = await authApi.getMe();
-          setUser(meRes.data.user);
-          localStorage.setItem('nexora_user', JSON.stringify(meRes.data.user));
-          getSocket();
+          if (meRes?.data?.user) {
+            setUser(meRes.data.user);
+            localStorage.setItem('nexora_user', JSON.stringify(meRes.data.user));
+            getSocket();
+          }
         }
       } catch (err) {
-        console.warn('Auth check failed:', err.message);
-        localStorage.removeItem('nexora_token');
-        localStorage.removeItem('nexora_user');
-        setToken(null);
-        setUser(null);
+        console.warn('Auth check notice:', err.response?.data?.error || err.message);
+        if (err.response?.status === 401) {
+          localStorage.removeItem('nexora_token');
+          localStorage.removeItem('nexora_user');
+          setToken(null);
+          setUser(null);
+        }
       } finally {
         setLoading(false);
       }
