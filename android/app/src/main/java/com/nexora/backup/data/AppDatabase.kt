@@ -19,7 +19,9 @@ abstract class AppDatabase : RoomDatabase() {
                     context.applicationContext,
                     AppDatabase::class.java,
                     "nexora_backup.db"
-                ).build()
+                )
+                .fallbackToDestructiveMigration()
+                .build()
                 INSTANCE = instance
                 instance
             }

@@ -1,5 +1,5 @@
 // web/src/components/common/Sidebar.jsx
-import React from 'react';
+import React, { useEffect } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { 
   HardDrive, 
@@ -13,12 +13,13 @@ import {
   Clock, 
   Disc3, 
   Cloud,
-  Folder
+  Folder,
+  X
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useDrive } from '../../context/DriveContext';
 
-export const Sidebar = () => {
+export const Sidebar = ({ isOpen, onClose }) => {
   const { user, logout } = useAuth();
   const { storageInfo } = useDrive();
   const navigate = useNavigate();
@@ -28,25 +29,64 @@ export const Sidebar = () => {
   const usedFormatted = disk?.formatted?.used || '0 GB';
   const totalFormatted = disk?.formatted?.total || '500 GB';
 
+  // Handle escape key to close drawer on mobile
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape' && isOpen) {
+        onClose?.();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
+
+  const handleNavClick = () => {
+    if (onClose) onClose();
+  };
+
   return (
-    <aside className="w-64 h-full bg-[#121214] border-r border-white/5 flex flex-col justify-between select-none z-20 shrink-0">
-      {/* Brand & Main Navigation */}
-      <div className="flex flex-col gap-6 p-4">
-        {/* Logo */}
-        <div className="flex items-center gap-3 px-2 py-1">
-          <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-emerald-500 to-teal-400 flex items-center justify-center shadow-lg shadow-emerald-500/20 text-black font-extrabold text-lg">
-            N
+    <>
+      {/* Mobile Backdrop Overlay */}
+      {isOpen && (
+        <div
+          className="fixed inset-0 bg-black/70 backdrop-blur-sm z-40 md:hidden transition-opacity duration-200"
+          onClick={onClose}
+        />
+      )}
+
+      <aside
+        className={`fixed md:static inset-y-0 left-0 z-50 md:z-20 w-72 md:w-64 h-full bg-[#121214] border-r border-white/5 flex flex-col justify-between select-none shrink-0 transition-transform duration-200 ease-out md:translate-x-0 ${
+          isOpen ? 'translate-x-0 shadow-2xl' : '-translate-x-full md:translate-x-0'
+        }`}
+      >
+        {/* Brand & Main Navigation */}
+        <div className="flex flex-col gap-6 p-4 overflow-y-auto">
+          {/* Logo & Mobile Close Button */}
+          <div className="flex items-center justify-between px-2 py-1">
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-emerald-500 to-teal-400 flex items-center justify-center shadow-lg shadow-emerald-500/20 text-black font-extrabold text-lg shrink-0">
+                N
+              </div>
+              <div>
+                <h1 className="font-extrabold text-lg tracking-tight text-white flex items-center gap-1.5">
+                  Nexora
+                  <span className="text-[10px] uppercase font-bold px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                    Cloud
+                  </span>
+                </h1>
+                <p className="text-xs text-zinc-400 font-medium">Self-Hosted Personal Suite</p>
+              </div>
+            </div>
+
+            {/* Close Button on Mobile */}
+            <button
+              onClick={onClose}
+              className="p-1.5 rounded-lg text-zinc-400 hover:text-white hover:bg-white/5 md:hidden"
+              title="Close Menu"
+            >
+              <X className="w-5 h-5" />
+            </button>
           </div>
-          <div>
-            <h1 className="font-extrabold text-lg tracking-tight text-white flex items-center gap-1.5">
-              Nexora
-              <span className="text-[10px] uppercase font-bold px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                Cloud
-              </span>
-            </h1>
-            <p className="text-xs text-zinc-400 font-medium">Self-Hosted Personal Suite</p>
-          </div>
-        </div>
 
         {/* Primary Navigation */}
         <nav className="flex flex-col gap-1">
@@ -57,6 +97,7 @@ export const Sidebar = () => {
           <NavLink
             to="/"
             end
+            onClick={handleNavClick}
             className={({ isActive }) =>
               `flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-semibold transition-all duration-150 ${
                 isActive
@@ -71,6 +112,7 @@ export const Sidebar = () => {
 
           <NavLink
             to="/music"
+            onClick={handleNavClick}
             className={({ isActive }) =>
               `flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-semibold transition-all duration-150 ${
                 isActive
@@ -85,6 +127,7 @@ export const Sidebar = () => {
 
           <NavLink
             to="/video"
+            onClick={handleNavClick}
             className={({ isActive }) =>
               `flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-semibold transition-all duration-150 ${
                 isActive
@@ -99,6 +142,7 @@ export const Sidebar = () => {
 
           <NavLink
             to="/sync"
+            onClick={handleNavClick}
             className={({ isActive }) =>
               `flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-semibold transition-all duration-150 ${
                 isActive
@@ -120,6 +164,7 @@ export const Sidebar = () => {
 
           <NavLink
             to="/music/favorites"
+            onClick={handleNavClick}
             className={({ isActive }) =>
               `flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all ${
                 isActive ? 'text-white bg-white/10' : 'text-zinc-400 hover:text-white hover:bg-white/5'
@@ -132,6 +177,7 @@ export const Sidebar = () => {
 
           <NavLink
             to="/music/albums"
+            onClick={handleNavClick}
             className={({ isActive }) =>
               `flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all ${
                 isActive ? 'text-white bg-white/10' : 'text-zinc-400 hover:text-white hover:bg-white/5'
@@ -188,7 +234,10 @@ export const Sidebar = () => {
           </div>
 
           <button
-            onClick={logout}
+            onClick={() => {
+              handleNavClick();
+              logout();
+            }}
             title="Sign Out"
             className="p-1.5 rounded-lg text-zinc-400 hover:text-rose-400 hover:bg-rose-500/10 transition-colors"
           >
@@ -197,5 +246,7 @@ export const Sidebar = () => {
         </div>
       </div>
     </aside>
+    </>
   );
 };
+

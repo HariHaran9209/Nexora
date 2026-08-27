@@ -7,6 +7,10 @@
     padding: 0;
   }
 
+  html {
+    -webkit-tap-highlight-color: transparent;
+  }
+
   body {
     background-color: #09090b;
     color: #f4f4f5;
@@ -15,7 +19,10 @@
     -webkit-user-select: none;
     overflow: hidden;
     height: 100vh;
+    height: 100dvh;
     width: 100vw;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 }
 
@@ -104,3 +111,26 @@ input[type="range"]::-moz-range-thumb {
 input[type="range"]:active::-moz-range-thumb {
   opacity: 1;
 }
+
+/* Hide scrollbars for horizontal chip carousels */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Smooth momentum scrolling for iOS/mobile */
+.touch-scroll {
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Safe area insets for mobile notches/bottom home bars */
+.pb-safe {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+.pt-safe {
+  padding-top: env(safe-area-inset-top, 0px);
+}
+

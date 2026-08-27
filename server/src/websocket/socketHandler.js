@@ -9,7 +9,7 @@ let io = null;
 const initSocketIO = (server) => {
   io = new Server(server, {
     cors: {
-      origin: CLIENT_ORIGIN,
+      origin: CLIENT_ORIGIN === '*' ? true : CLIENT_ORIGIN,
       methods: ['GET', 'POST'],
       credentials: true
     },

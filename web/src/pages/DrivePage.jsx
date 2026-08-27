@@ -104,7 +104,7 @@ export const DrivePage = () => {
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
-      className="relative flex-1 flex flex-col h-full overflow-hidden p-6 select-none"
+      className="relative flex-1 flex flex-col h-full overflow-hidden p-3 sm:p-6 select-none"
     >
       {/* Drag & Drop Visual Overlay */}
       {isDraggingOver && (
@@ -116,14 +116,16 @@ export const DrivePage = () => {
       )}
 
       {/* Top Toolbar */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6 pb-4 border-b border-white/5 shrink-0">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4 mb-3 sm:mb-6 pb-3 sm:pb-4 border-b border-white/5 shrink-0">
         {/* Breadcrumbs */}
-        <Breadcrumbs />
+        <div className="w-full sm:w-auto overflow-hidden">
+          <Breadcrumbs />
+        </div>
 
         {/* Category Pills & View Switcher */}
-        <div className="flex items-center gap-3 w-full sm:w-auto justify-between sm:justify-end">
+        <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto justify-between sm:justify-end overflow-x-auto no-scrollbar py-0.5">
           {/* Category Tabs */}
-          <div className="flex items-center gap-1 bg-[#18181b] p-1 rounded-xl border border-white/5">
+          <div className="flex items-center gap-1 bg-[#18181b] p-1 rounded-xl border border-white/5 shrink-0">
             {categories.map((cat) => {
               const Icon = cat.icon;
               const isActive = activeCategory === cat.id;
@@ -131,21 +133,21 @@ export const DrivePage = () => {
                 <button
                   key={cat.id || 'all'}
                   onClick={() => handleCategoryClick(cat.id)}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                  className={`flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all ${
                     isActive
                       ? 'bg-emerald-500 text-black shadow-md'
                       : 'text-zinc-400 hover:text-white hover:bg-white/5'
                   }`}
                 >
                   <Icon className="w-3.5 h-3.5" />
-                  <span className="hidden md:inline">{cat.label}</span>
+                  <span className="inline">{cat.label}</span>
                 </button>
               );
             })}
           </div>
 
           {/* Grid / List View Toggle */}
-          <div className="flex items-center bg-[#18181b] p-1 rounded-xl border border-white/5">
+          <div className="flex items-center bg-[#18181b] p-1 rounded-xl border border-white/5 shrink-0">
             <button
               onClick={() => toggleViewMode('grid')}
               className={`p-1.5 rounded-lg transition-colors ${

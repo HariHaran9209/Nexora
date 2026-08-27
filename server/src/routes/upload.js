@@ -23,10 +23,10 @@ router.use(authMiddleware);
  * Single file upload (for smaller files)
  */
 const diskStorage = multer.diskStorage({
-  destination: async (req, file, cb) => {
+  destination: (req, file, cb) => {
     try {
       const targetDir = path.join(MEDIA_DIR, req.user._id.toString());
-      await fs.ensureDir(targetDir);
+      fs.ensureDirSync(targetDir);
       cb(null, targetDir);
     } catch (err) {
       cb(err);

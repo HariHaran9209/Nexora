@@ -35,14 +35,14 @@ data class UserDto(
 
 interface NexoraApiService {
 
-    @POST("/api/auth/login")
+    @POST("api/auth/login")
     suspend fun login(@Body request: LoginRequest): Response<LoginResponse>
 
-    @POST("/api/sync/android/check-hashes")
+    @POST("api/sync/android/check-hashes")
     suspend fun checkHashes(@Body request: CheckHashesRequest): Response<CheckHashesResponse>
 
     @Multipart
-    @POST("/api/sync/android/upload")
+    @POST("api/sync/android/upload")
     suspend fun uploadMedia(
         @Part file: MultipartBody.Part,
         @Part("folderName") folderName: RequestBody,

@@ -1,0 +1,7 @@
+{
+  "serverUrl": "http://100.124.30.77/",
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjZhOGYzZTc1MjVkODg1ZjkwYWU0NDIzOCIsImlhdCI6MTc4Nzc3MzgyOSwiZXhwIjoxNzkwMzY1ODI5fQ.DcdYMOeV7CqAb1BCxspdPI_ho5HrVOpgwjXJ57mdIPw",
+  "syncFolderPath": "D:\\Muthukumar\\Mine",
+  "deviceId": "windows_11_client_eisidg",
+  "pollIntervalMs": 15000
+}

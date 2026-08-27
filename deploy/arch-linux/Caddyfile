@@ -3,7 +3,7 @@
 
 :80, :443 {
     # Reverse proxy API requests to Node.js backend
-    handle /api/* {
+    handle /api* {
         reverse_proxy 127.0.0.1:5000 {
             header_up X-Real-IP {remote_host}
             header_up X-Forwarded-For {remote_host}
@@ -11,12 +11,9 @@
         }
     }
 
-    # WebSocket for real-time upload progress and multi-device sync
-    handle /socket.io/* {
-        reverse_proxy 127.0.0.1:5000 {
-            header_up Upgrade {>Upgrade}
-            header_up Connection {>Connection}
-        }
+    # WebSocket and Polling for real-time progress and multi-device sync
+    handle /socket.io* {
+        reverse_proxy 127.0.0.1:5000
     }
 
     # Serve pre-built React frontend assets and SPA fallback for React router

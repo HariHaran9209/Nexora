@@ -5,6 +5,7 @@ import android.content.Context
 import android.net.Uri
 import android.os.Build
 import android.provider.MediaStore
+import android.util.Log
 import java.io.File
 
 data class ScannedMediaItem(
@@ -22,91 +23,109 @@ object MediaScannerUtils {
         val items = mutableListOf<ScannedMediaItem>()
 
         // 1. Scan Images
-        val imageProjection = arrayOf(
-            MediaStore.Images.Media._ID,
-            MediaStore.Images.Media.DISPLAY_NAME,
-            MediaStore.Images.Media.DATA,
-            MediaStore.Images.Media.SIZE,
-            MediaStore.Images.Media.MIME_TYPE,
-            MediaStore.Images.Media.DATE_ADDED
+        scanMediaCollection(
+            context = context,
+            contentUri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+            defaultMime = "image/jpeg",
+            items = items
         )
-
-        val imageSelection = "${MediaStore.Images.Media.DATA} LIKE ?"
-        val imageArgs = arrayOf("%DCIM/Camera/%")
-        val imageSort = "${MediaStore.Images.Media.DATE_ADDED} DESC"
-
-        context.contentResolver.query(
-            MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
-            imageProjection,
-            imageSelection,
-            imageArgs,
-            imageSort
-        )?.use { cursor ->
-            val idCol = cursor.getColumnIndexOrThrow(MediaStore.Images.Media._ID)
-            val nameCol = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DISPLAY_NAME)
-            val dataCol = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA)
-            val sizeCol = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.SIZE)
-            val mimeCol = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.MIME_TYPE)
-            val dateCol = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATE_ADDED)
-
-            while (cursor.moveToNext()) {
-                val id = cursor.getLong(idCol)
-                val path = cursor.getString(dataCol) ?: ""
-                val name = cursor.getString(nameCol) ?: File(path).name
-                val size = cursor.getLong(sizeCol)
-                val mime = cursor.getString(mimeCol) ?: "image/jpeg"
-                val dateAdded = cursor.getLong(dateCol)
-                val uri = ContentUris.withAppendedId(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, id)
-
-                if (path.isNotEmpty() && File(path).exists() && size > 0) {
-                    items.add(ScannedMediaItem(uri, path, name, size, mime, dateAdded))
-                }
-            }
-        }
 
         // 2. Scan Videos
-        val videoProjection = arrayOf(
-            MediaStore.Video.Media._ID,
-            MediaStore.Video.Media.DISPLAY_NAME,
-            MediaStore.Video.Media.DATA,
-            MediaStore.Video.Media.SIZE,
-            MediaStore.Video.Media.MIME_TYPE,
-            MediaStore.Video.Media.DATE_ADDED
+        scanMediaCollection(
+            context = context,
+            contentUri = MediaStore.Video.Media.EXTERNAL_CONTENT_URI,
+            defaultMime = "video/mp4",
+            items = items
         )
-
-        val videoSelection = "${MediaStore.Video.Media.DATA} LIKE ?"
-        val videoArgs = arrayOf("%DCIM/Camera/%")
-        val videoSort = "${MediaStore.Video.Media.DATE_ADDED} DESC"
-
-        context.contentResolver.query(
-            MediaStore.Video.Media.EXTERNAL_CONTENT_URI,
-            videoProjection,
-            videoSelection,
-            videoArgs,
-            videoSort
-        )?.use { cursor ->
-            val idCol = cursor.getColumnIndexOrThrow(MediaStore.Video.Media._ID)
-            val nameCol = cursor.getColumnIndexOrThrow(MediaStore.Video.Media.DISPLAY_NAME)
-            val dataCol = cursor.getColumnIndexOrThrow(MediaStore.Video.Media.DATA)
-            val sizeCol = cursor.getColumnIndexOrThrow(MediaStore.Video.Media.SIZE)
-            val mimeCol = cursor.getColumnIndexOrThrow(MediaStore.Video.Media.MIME_TYPE)
-            val dateCol = cursor.getColumnIndexOrThrow(MediaStore.Video.Media.DATE_ADDED)
-
-            while (cursor.moveToNext()) {
-                val id = cursor.getLong(idCol)
-                val path = cursor.getString(dataCol) ?: ""
-                val name = cursor.getString(nameCol) ?: File(path).name
-                val size = cursor.getLong(sizeCol)
-                val mime = cursor.getString(mimeCol) ?: "video/mp4"
-                val dateAdded = cursor.getLong(dateCol)
-                val uri = ContentUris.withAppendedId(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, id)
-
-                if (path.isNotEmpty() && File(path).exists() && size > 0) {
-                    items.add(ScannedMediaItem(uri, path, name, size, mime, dateAdded))
-                }
-            }
-        }
 
         return items
     }
+
+    private fun scanMediaCollection(
+        context: Context,
+        contentUri: Uri,
+        defaultMime: String,
+        items: MutableList<ScannedMediaItem>
+    ) {
+        val projection = arrayOf(
+            MediaStore.MediaColumns._ID,
+            MediaStore.MediaColumns.DISPLAY_NAME,
+            MediaStore.MediaColumns.SIZE,
+            MediaStore.MediaColumns.MIME_TYPE,
+            MediaStore.MediaColumns.DATE_ADDED,
+            MediaStore.MediaColumns.DATA
+        )
+
+        val sortOrder = "${MediaStore.MediaColumns.DATE_ADDED} DESC"
+
+        try {
+            context.contentResolver.query(
+                contentUri,
+                projection,
+                null,
+                null,
+                sortOrder
+            )?.use { cursor ->
+                val idCol = cursor.getColumnIndex(MediaStore.MediaColumns._ID)
+                val nameCol = cursor.getColumnIndex(MediaStore.MediaColumns.DISPLAY_NAME)
+                val sizeCol = cursor.getColumnIndex(MediaStore.MediaColumns.SIZE)
+                val mimeCol = cursor.getColumnIndex(MediaStore.MediaColumns.MIME_TYPE)
+                val dateCol = cursor.getColumnIndex(MediaStore.MediaColumns.DATE_ADDED)
+                val dataCol = cursor.getColumnIndex(MediaStore.MediaColumns.DATA)
+
+                while (cursor.moveToNext()) {
+                    try {
+                        val id = if (idCol >= 0) cursor.getLong(idCol) else continue
+                        val uri = ContentUris.withAppendedId(contentUri, id)
+
+                        val directPath = if (dataCol >= 0) (cursor.getString(dataCol) ?: "") else ""
+                        val displayName = if (nameCol >= 0) (cursor.getString(nameCol) ?: "") else ""
+                        var size = if (sizeCol >= 0) cursor.getLong(sizeCol) else 0L
+                        val mime = if (mimeCol >= 0) (cursor.getString(mimeCol) ?: defaultMime) else defaultMime
+                        val dateAdded = if (dateCol >= 0) cursor.getLong(dateCol) else System.currentTimeMillis() / 1000
+
+                        val finalName = when {
+                            displayName.isNotEmpty() -> displayName
+                            directPath.isNotEmpty() -> File(directPath).name
+                            else -> "media_$id.${if (defaultMime.contains("video")) "mp4" else "jpg"}"
+                        }
+
+                        // Size fallback if MediaStore returned 0
+                        if (size <= 0L && directPath.isNotEmpty()) {
+                            try {
+                                val f = File(directPath)
+                                if (f.exists() && f.isFile) {
+                                    size = f.length()
+                                }
+                            } catch (e: Exception) {}
+                        }
+
+                        if (size <= 0L) {
+                            try {
+                                context.contentResolver.openAssetFileDescriptor(uri, "r")?.use { afd ->
+                                    size = afd.length
+                                }
+                            } catch (e: Exception) {}
+                        }
+
+                        items.add(
+                            ScannedMediaItem(
+                                uri = uri,
+                                filePath = directPath,
+                                fileName = finalName,
+                                size = if (size > 0) size else 0L,
+                                mimeType = mime,
+                                dateAdded = dateAdded
+                            )
+                        )
+                    } catch (e: Exception) {
+                        Log.w("MediaScannerUtils", "Skipping individual item due to error: ${e.message}")
+                    }
+                }
+            }
+        } catch (e: Exception) {
+            Log.e("MediaScannerUtils", "Error querying collection $contentUri", e)
+        }
+    }
 }
+

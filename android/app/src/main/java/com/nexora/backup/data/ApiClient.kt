@@ -1,6 +1,7 @@
 package com.nexora.backup.data
 
 import android.content.Context
+import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
@@ -12,13 +13,21 @@ object ApiClient {
 
     fun getService(context: Context): NexoraApiService {
         val prefs = PreferenceManager(context)
-        val baseUrl = prefs.serverUrl.ifEmpty { "http://127.0.0.1:5000" }
+        var rawUrl = prefs.serverUrl.trim()
+        if (rawUrl.isEmpty()) {
+            rawUrl = "http://127.0.0.1:5000"
+        }
+        if (!rawUrl.startsWith("http://") && !rawUrl.startsWith("https://")) {
+            rawUrl = "http://$rawUrl"
+        }
+        val baseUrl = if (rawUrl.endsWith("/")) rawUrl else "$rawUrl/"
+        val validBaseUrl = baseUrl.toHttpUrlOrNull()?.toString() ?: "http://127.0.0.1:5000/"
 
         val authInterceptor = Interceptor { chain ->
             val original = chain.request()
             val requestBuilder = original.newBuilder()
 
-            val token = prefs.authToken
+            val token = prefs.authToken.trim()
             if (token.isNotEmpty()) {
                 requestBuilder.header("Authorization", "Bearer $token")
             }
@@ -34,12 +43,12 @@ object ApiClient {
             .addInterceptor(authInterceptor)
             .addInterceptor(loggingInterceptor)
             .connectTimeout(60, TimeUnit.SECONDS)
-            .readTimeout(120, TimeUnit.SECONDS)
-            .writeTimeout(120, TimeUnit.SECONDS)
+            .readTimeout(300, TimeUnit.SECONDS)
+            .writeTimeout(300, TimeUnit.SECONDS)
             .build()
 
         val retrofit = Retrofit.Builder()
-            .baseUrl(if (baseUrl.endsWith("/")) baseUrl else "$baseUrl/")
+            .baseUrl(validBaseUrl)
             .client(client)
             .addConverterFactory(GsonConverterFactory.create())
             .build()

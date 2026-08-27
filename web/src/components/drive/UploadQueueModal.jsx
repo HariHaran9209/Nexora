@@ -13,7 +13,7 @@ export const UploadQueueModal = () => {
   const isAllCompleted = completedCount === uploadQueue.length;
 
   return (
-    <div className="fixed bottom-24 right-6 z-40 w-80 sm:w-96 glass-panel rounded-2xl border border-white/10 shadow-2xl overflow-hidden transition-all duration-200 animate-in slide-in-from-bottom-5">
+    <div className="fixed bottom-20 md:bottom-24 left-3 right-3 sm:left-auto sm:right-6 z-40 sm:w-96 glass-panel rounded-2xl border border-white/10 shadow-2xl overflow-hidden transition-all duration-200 animate-in slide-in-from-bottom-5">
       {/* Header */}
       <div
         onClick={() => setIsExpanded(!isExpanded)}

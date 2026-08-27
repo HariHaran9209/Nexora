@@ -15,16 +15,13 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-// Intercept 401 Unauthorized to trigger logout
+// Intercept 401 Unauthorized to clean up invalid tokens
 api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response && error.response.status === 401) {
-      if (window.location.pathname !== '/login') {
-        localStorage.removeItem('nexora_token');
-        localStorage.removeItem('nexora_user');
-        window.location.href = '/login';
-      }
+      localStorage.removeItem('nexora_token');
+      localStorage.removeItem('nexora_user');
     }
     return Promise.reject(error);
   }

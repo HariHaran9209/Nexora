@@ -341,30 +341,30 @@ export const VlcPlayer = ({ videoId, onClose }) => {
 
       {/* Center Toast Feedback (VLC On Screen Display) */}
       {toastMessage && (
-        <div className="absolute top-10 right-10 bg-black/80 backdrop-blur-md px-4 py-2 rounded-lg border border-amber-500/30 text-amber-400 font-mono text-sm font-semibold shadow-xl animate-in fade-in zoom-in-90 duration-150">
+        <div className="absolute top-4 sm:top-10 right-4 sm:right-10 bg-black/85 backdrop-blur-md px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg border border-amber-500/30 text-amber-400 font-mono text-xs sm:text-sm font-semibold shadow-xl animate-in fade-in zoom-in-90 duration-150 z-40">
           {toastMessage}
         </div>
       )}
 
       {/* Top Header Controls */}
       <div
-        className={`absolute top-0 left-0 right-0 p-6 bg-gradient-to-b from-black/80 via-black/40 to-transparent flex items-center justify-between transition-opacity duration-300 ${
+        className={`absolute top-0 left-0 right-0 p-3 sm:p-6 pt-safe bg-gradient-to-b from-black/90 via-black/50 to-transparent flex items-center justify-between transition-opacity duration-300 z-30 ${
           showControls ? 'opacity-100' : 'opacity-0 pointer-events-none'
         }`}
       >
-        <div className="flex items-center gap-4 min-w-0">
+        <div className="flex items-center gap-2.5 sm:gap-4 min-w-0 flex-1 mr-2">
           <button
             onClick={onClose}
-            className="p-2 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors"
+            className="p-2 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors shrink-0"
             title="Back"
           >
-            <ArrowLeft className="w-5 h-5" />
+            <ArrowLeft className="w-4 h-4 sm:w-5 sm:h-5" />
           </button>
-          <div className="min-w-0">
-            <h2 className="text-base sm:text-lg font-bold text-white truncate">
+          <div className="min-w-0 flex-1">
+            <h2 className="text-xs sm:text-base md:text-lg font-bold text-white truncate">
               {details?.video?.name || 'VLC Video Player'}
             </h2>
-            <div className="flex items-center gap-3 text-xs text-zinc-400 font-mono mt-0.5">
+            <div className="hidden xs:flex items-center gap-2 text-[10px] sm:text-xs text-zinc-400 font-mono mt-0.5">
               <span>{details?.videoMeta?.codec?.toUpperCase() || 'H.264'}</span>
               <span>•</span>
               <span>{details?.videoMeta?.width}x{details?.videoMeta?.height}</span>
@@ -374,26 +374,26 @@ export const VlcPlayer = ({ videoId, onClose }) => {
           </div>
         </div>
 
-        {/* Shortcuts Help Button */}
+        {/* Shortcuts Help Button (Desktop only) */}
         <button
           onClick={() => setOpenMenu(openMenu === 'shortcuts' ? null : 'shortcuts')}
-          className="p-2 rounded-lg bg-white/5 hover:bg-white/10 text-zinc-300 hover:text-white transition-colors flex items-center gap-1.5 text-xs font-semibold"
+          className="hidden md:flex p-2 rounded-lg bg-white/5 hover:bg-white/10 text-zinc-300 hover:text-white transition-colors items-center gap-1.5 text-xs font-semibold shrink-0"
           title="VLC Keyboard Shortcuts"
         >
           <Keyboard className="w-4 h-4 text-amber-400" />
-          <span className="hidden sm:inline">Shortcuts</span>
+          <span>Shortcuts</span>
         </button>
       </div>
 
       {/* VLC Bottom Controls Toolbar */}
       <div
-        className={`absolute bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-black/90 via-black/50 to-transparent flex flex-col gap-3 transition-opacity duration-300 ${
+        className={`absolute bottom-0 left-0 right-0 p-3 sm:p-6 pb-safe bg-gradient-to-t from-black/95 via-black/60 to-transparent flex flex-col gap-2 sm:gap-3 transition-opacity duration-300 z-30 ${
           showControls ? 'opacity-100' : 'opacity-0 pointer-events-none'
         }`}
       >
         {/* Scrubber (VLC signature Orange Accent) */}
-        <div className="w-full flex items-center gap-3 text-xs font-mono text-zinc-300">
-          <span>{formatTime(currentTime)}</span>
+        <div className="w-full flex items-center gap-2 sm:gap-3 text-[10px] sm:text-xs font-mono text-zinc-300">
+          <span className="w-12 sm:w-16 text-right shrink-0">{formatTime(currentTime)}</span>
           <div className="relative flex-1 flex items-center h-4 cursor-pointer group">
             <input
               type="range"
@@ -407,37 +407,37 @@ export const VlcPlayer = ({ videoId, onClose }) => {
               }}
             />
           </div>
-          <span>{formatTime(duration)}</span>
+          <span className="w-12 sm:w-16 text-left shrink-0">{formatTime(duration)}</span>
         </div>
 
         {/* Action Buttons Row */}
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between gap-2">
           {/* Left: Play/Pause, Rewind, Forward, Volume */}
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-1.5 sm:gap-4">
             <button
               onClick={togglePlay}
-              className="w-10 h-10 rounded-full bg-amber-500 hover:bg-amber-400 active:scale-95 text-black flex items-center justify-center shadow-lg shadow-amber-500/20 transition-all"
+              className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-amber-500 hover:bg-amber-400 active:scale-95 text-black flex items-center justify-center shadow-lg shadow-amber-500/20 transition-all shrink-0"
             >
-              {isPlaying ? <Pause className="w-5 h-5 fill-current" /> : <Play className="w-5 h-5 fill-current ml-0.5" />}
+              {isPlaying ? <Pause className="w-4 h-4 sm:w-5 sm:h-5 fill-current" /> : <Play className="w-4 h-4 sm:w-5 sm:h-5 fill-current ml-0.5" />}
             </button>
 
             <button
               onClick={() => handleSeek(Math.max(0, currentTime - 10))}
-              className="p-2 text-zinc-400 hover:text-white transition-colors"
+              className="p-1.5 sm:p-2 text-zinc-400 hover:text-white active:scale-95 transition-colors"
               title="Rewind 10s"
             >
-              <RotateCcw className="w-5 h-5" />
+              <RotateCcw className="w-4 h-4 sm:w-5 sm:h-5" />
             </button>
 
-            {/* Volume */}
-            <div className="flex items-center gap-2">
+            {/* Volume (Hidden on small mobile where physical volume keys are used) */}
+            <div className="hidden sm:flex items-center gap-2">
               <button onClick={toggleMute} className="text-zinc-400 hover:text-white transition-colors">
                 {isMuted || volume === 0 ? (
-                  <VolumeX className="w-5 h-5 text-rose-400" />
+                  <VolumeX className="w-4 h-4 sm:w-5 sm:h-5 text-rose-400" />
                 ) : volume < 0.5 ? (
-                  <Volume1 className="w-5 h-5" />
+                  <Volume1 className="w-4 h-4 sm:w-5 sm:h-5" />
                 ) : (
-                  <Volume2 className="w-5 h-5" />
+                  <Volume2 className="w-4 h-4 sm:w-5 sm:h-5" />
                 )}
               </button>
               <input
@@ -447,30 +447,30 @@ export const VlcPlayer = ({ videoId, onClose }) => {
                 step="0.02"
                 value={isMuted ? 0 : volume}
                 onChange={(e) => changeVolume(parseFloat(e.target.value))}
-                className="w-20 h-1 bg-white/20 accent-amber-500"
+                className="w-16 sm:w-20 h-1 bg-white/20 accent-amber-500"
               />
             </div>
           </div>
 
           {/* Right: Subtitles, Audio Tracks, Speed, Fullscreen */}
-          <div className="flex items-center gap-3 relative">
+          <div className="flex items-center gap-1.5 sm:gap-3 relative">
             {/* Subtitle Selector */}
             <div className="relative">
               <button
                 onClick={() => setOpenMenu(openMenu === 'subtitles' ? null : 'subtitles')}
-                className={`p-2 rounded-lg transition-colors flex items-center gap-1.5 text-xs font-semibold ${
+                className={`p-1.5 sm:p-2 rounded-lg transition-colors flex items-center gap-1 text-xs font-semibold ${
                   selectedSubtitleIndex !== -1
                     ? 'text-amber-400 bg-amber-500/20 border border-amber-500/30'
                     : 'text-zinc-400 hover:text-white hover:bg-white/10'
                 }`}
                 title="Subtitles"
               >
-                <Subtitles className="w-5 h-5" />
+                <Subtitles className="w-4 h-4 sm:w-5 sm:h-5" />
                 <span className="hidden sm:inline">Subs</span>
               </button>
 
               {openMenu === 'subtitles' && (
-                <div className="absolute bottom-12 right-0 w-64 bg-[#18181b] border border-white/10 rounded-xl p-2 shadow-2xl z-50 animate-in fade-in zoom-in-95 text-xs">
+                <div className="absolute bottom-12 right-0 w-60 sm:w-64 max-h-60 overflow-y-auto bg-[#18181b] border border-white/10 rounded-xl p-2 shadow-2xl z-50 animate-in fade-in zoom-in-95 text-xs">
                   <p className="font-bold text-zinc-400 px-3 py-1.5 uppercase tracking-wider text-[10px]">
                     Subtitle Tracks ({subtitleStreams.length})
                   </p>
@@ -503,15 +503,15 @@ export const VlcPlayer = ({ videoId, onClose }) => {
             <div className="relative">
               <button
                 onClick={() => setOpenMenu(openMenu === 'audio' ? null : 'audio')}
-                className="p-2 rounded-lg text-zinc-400 hover:text-white hover:bg-white/10 transition-colors flex items-center gap-1.5 text-xs font-semibold"
+                className="p-1.5 sm:p-2 rounded-lg text-zinc-400 hover:text-white hover:bg-white/10 transition-colors flex items-center gap-1 text-xs font-semibold"
                 title="Audio Tracks"
               >
-                <Headphones className="w-5 h-5" />
+                <Headphones className="w-4 h-4 sm:w-5 sm:h-5" />
                 <span className="hidden sm:inline">Audio</span>
               </button>
 
               {openMenu === 'audio' && (
-                <div className="absolute bottom-12 right-0 w-64 bg-[#18181b] border border-white/10 rounded-xl p-2 shadow-2xl z-50 animate-in fade-in zoom-in-95 text-xs">
+                <div className="absolute bottom-12 right-0 w-60 sm:w-64 max-h-60 overflow-y-auto bg-[#18181b] border border-white/10 rounded-xl p-2 shadow-2xl z-50 animate-in fade-in zoom-in-95 text-xs">
                   <p className="font-bold text-zinc-400 px-3 py-1.5 uppercase tracking-wider text-[10px]">
                     Audio Streams ({audioStreams.length})
                   </p>
@@ -539,15 +539,15 @@ export const VlcPlayer = ({ videoId, onClose }) => {
             <div className="relative">
               <button
                 onClick={() => setOpenMenu(openMenu === 'speed' ? null : 'speed')}
-                className="p-2 rounded-lg text-zinc-400 hover:text-white hover:bg-white/10 transition-colors flex items-center gap-1 text-xs font-mono font-semibold"
+                className="p-1.5 sm:p-2 rounded-lg text-zinc-400 hover:text-white hover:bg-white/10 transition-colors flex items-center gap-1 text-xs font-mono font-semibold"
                 title="Playback Speed"
               >
-                <Gauge className="w-4 h-4 text-amber-400" />
+                <Gauge className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-400" />
                 <span>{playbackSpeed}x</span>
               </button>
 
               {openMenu === 'speed' && (
-                <div className="absolute bottom-12 right-0 w-36 bg-[#18181b] border border-white/10 rounded-xl p-1.5 shadow-2xl z-50 animate-in fade-in zoom-in-95 text-xs font-mono">
+                <div className="absolute bottom-12 right-0 w-32 sm:w-36 bg-[#18181b] border border-white/10 rounded-xl p-1.5 shadow-2xl z-50 animate-in fade-in zoom-in-95 text-xs font-mono">
                   {[0.5, 0.75, 1.0, 1.25, 1.5, 2.0].map((s) => (
                     <div
                       key={s}
@@ -567,10 +567,10 @@ export const VlcPlayer = ({ videoId, onClose }) => {
             {/* Fullscreen */}
             <button
               onClick={toggleFullscreen}
-              className="p-2 rounded-lg text-zinc-400 hover:text-white hover:bg-white/10 transition-colors"
-              title="Fullscreen (F)"
+              className="p-1.5 sm:p-2 rounded-lg text-zinc-400 hover:text-white hover:bg-white/10 transition-colors"
+              title="Fullscreen"
             >
-              {isFullscreen ? <Minimize className="w-5 h-5" /> : <Maximize className="w-5 h-5" />}
+              {isFullscreen ? <Minimize className="w-4 h-4 sm:w-5 sm:h-5" /> : <Maximize className="w-4 h-4 sm:w-5 sm:h-5" />}
             </button>
           </div>
         </div>

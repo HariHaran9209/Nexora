@@ -7,9 +7,11 @@ import { PlayerProvider } from './context/PlayerContext';
 
 import { Sidebar } from './components/common/Sidebar';
 import { TopNav } from './components/common/TopNav';
+import { MobileNav } from './components/common/MobileNav';
 import { MusicPlayerBar } from './components/music/MusicPlayerBar';
 import { QueueDrawer } from './components/music/QueueDrawer';
 import { NowPlayingModal } from './components/music/NowPlayingModal';
+import { usePlayer } from './context/PlayerContext';
 
 import { DrivePage } from './pages/DrivePage';
 import { MusicPage } from './pages/MusicPage';
@@ -20,24 +22,39 @@ import { LoginPage } from './pages/LoginPage';
 // Layout Shell for Authenticated Screens
 const AppLayout = () => {
   const [newFolderTrigger, setNewFolderTrigger] = useState(false);
+  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
+  const { currentTrack } = usePlayer();
 
   return (
-    <div className="flex h-screen w-screen bg-[#09090b] overflow-hidden">
-      {/* Spotify Sidebar */}
-      <Sidebar />
+    <div className="flex h-screen h-[100dvh] w-screen bg-[#09090b] overflow-hidden">
+      {/* Spotify Sidebar (Fixed on desktop, slide-over drawer on mobile) */}
+      <Sidebar
+        isOpen={isMobileSidebarOpen}
+        onClose={() => setIsMobileSidebarOpen(false)}
+      />
 
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col min-w-0 h-full overflow-hidden">
-        <TopNav onNewFolder={() => setNewFolderTrigger((prev) => !prev)} />
+        <TopNav
+          onNewFolder={() => setNewFolderTrigger((prev) => !prev)}
+          onOpenSidebar={() => setIsMobileSidebarOpen(true)}
+        />
         
-        {/* Dynamic Screen View */}
-        <main className="flex-1 overflow-hidden pb-20 relative">
+        {/* Dynamic Screen View with Responsive Safe Padding */}
+        <main
+          className={`flex-1 overflow-hidden relative ${
+            currentTrack ? 'pb-28 md:pb-20' : 'pb-14 md:pb-0'
+          }`}
+        >
           <Outlet context={{ newFolderTrigger }} />
         </main>
       </div>
 
-      {/* Persistent Spotify Bottom Player Bar */}
+      {/* Persistent Spotify Bottom Player Bar (Floating mini-bar on mobile, full bar on desktop) */}
       <MusicPlayerBar />
+
+      {/* Mobile Bottom Navigation Bar (< md screens) */}
+      <MobileNav onOpenSidebar={() => setIsMobileSidebarOpen(true)} />
 
       {/* Slide-out Play Queue Drawer */}
       <QueueDrawer />

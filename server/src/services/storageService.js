@@ -16,6 +16,7 @@ class StorageService {
     fs.ensureDirSync(THUMBNAILS_DIR);
     fs.ensureDirSync(SUBTITLES_CACHE_DIR);
     fs.ensureDirSync(MEDIA_DIR);
+    fs.ensureDirSync(path.join(MEDIA_DIR, '.temp_sync_uploads'));
   }
 
   /**

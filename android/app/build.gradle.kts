@@ -1,6 +1,7 @@
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
+    id("kotlin-kapt")
 }
 
 android {
@@ -50,6 +51,7 @@ dependencies {
     // Room Database for local file hash tracking & deduplication
     implementation("androidx.room:room-runtime:2.6.1")
     implementation("androidx.room:room-ktx:2.6.1")
+    kapt("androidx.room:room-compiler:2.6.1")
 
     // Retrofit & OkHttp for multipart & chunked API uploads
     implementation("com.squareup.retrofit2:retrofit:2.11.0")

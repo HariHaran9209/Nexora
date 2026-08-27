@@ -24,8 +24,12 @@ class NexoraApp : Application() {
     override fun onCreate() {
         super.onCreate()
         instance = this
-        createNotificationChannel()
-        schedulePeriodicBackup()
+        try {
+            createNotificationChannel()
+            schedulePeriodicBackup()
+        } catch (e: Exception) {
+            android.util.Log.e("NexoraApp", "Error during Application onCreate", e)
+        }
     }
 
     private fun createNotificationChannel() {
@@ -36,34 +40,38 @@ class NexoraApp : Application() {
             val channel = NotificationChannel(CHANNEL_ID, name, importance).apply {
                 description = descriptionText
             }
-            val notificationManager: NotificationManager =
+            val notificationManager: NotificationManager? =
                 getSystemService(NotificationManager::class.java)
-            notificationManager.createNotificationChannel(channel)
+            notificationManager?.createNotificationChannel(channel)
         }
     }
 
     fun schedulePeriodicBackup() {
-        val prefs = PreferenceManager(this)
-        if (!prefs.isAutoBackupEnabled) {
-            WorkManager.getInstance(this).cancelUniqueWork("NexoraPeriodicBackup")
-            return
+        try {
+            val prefs = PreferenceManager(this)
+            if (!prefs.isAutoBackupEnabled) {
+                WorkManager.getInstance(this).cancelUniqueWork("NexoraPeriodicBackup")
+                return
+            }
+
+            val networkType = if (prefs.isWifiOnly) NetworkType.UNMETERED else NetworkType.CONNECTED
+
+            val constraints = Constraints.Builder()
+                .setRequiredNetworkType(networkType)
+                .setRequiresBatteryNotLow(true)
+                .build()
+
+            val backupRequest = PeriodicWorkRequestBuilder<MediaBackupWorker>(15, TimeUnit.MINUTES)
+                .setConstraints(constraints)
+                .build()
+
+            WorkManager.getInstance(this).enqueueUniquePeriodicWork(
+                "NexoraPeriodicBackup",
+                ExistingPeriodicWorkPolicy.UPDATE,
+                backupRequest
+            )
+        } catch (e: Exception) {
+            android.util.Log.e("NexoraApp", "Error scheduling periodic backup", e)
         }
-
-        val networkType = if (prefs.isWifiOnly) NetworkType.UNMETERED else NetworkType.CONNECTED
-
-        val constraints = Constraints.Builder()
-            .setRequiredNetworkType(networkType)
-            .setRequiresBatteryNotLow(true)
-            .build()
-
-        val backupRequest = PeriodicWorkRequestBuilder<MediaBackupWorker>(15, TimeUnit.MINUTES)
-            .setConstraints(constraints)
-            .build()
-
-        WorkManager.getInstance(this).enqueueUniquePeriodicWork(
-            "NexoraPeriodicBackup",
-            ExistingPeriodicWorkPolicy.KEEP,
-            backupRequest
-        )
     }
 }

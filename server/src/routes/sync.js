@@ -14,8 +14,11 @@ const musicMetadataService = require('../services/musicMetadataService');
 const mediaProbeService = require('../services/mediaProbeService');
 const { MEDIA_DIR } = require('../config/env');
 
+const uploadTempDir = path.join(MEDIA_DIR, '.temp_sync_uploads');
+fs.ensureDirSync(uploadTempDir);
+
 const upload = multer({
-  dest: path.join(MEDIA_DIR, '.temp_sync_uploads'),
+  dest: uploadTempDir,
   limits: { fileSize: 1024 * 1024 * 1024 * 5 } // 5GB max for single backup file
 });
 
@@ -37,6 +40,14 @@ router.post('/android/check-hashes', async (req, res, next) => {
       return res.status(400).json({ success: false, error: 'hashes must be an array' });
     }
 
+    if (hashes.length === 0) {
+      return res.json({
+        success: true,
+        existingHashes: [],
+        neededHashes: []
+      });
+    }
+
     const existing = await FileItem.find({
       userId: req.user._id,
       hash: { $in: hashes },
@@ -44,11 +55,12 @@ router.post('/android/check-hashes', async (req, res, next) => {
     }).select('hash name size');
 
     const existingHashes = existing.map((f) => f.hash);
+    const existingSet = new Set(existingHashes);
 
     res.json({
       success: true,
       existingHashes,
-      neededHashes: hashes.filter((h) => !existingHashes.includes(h))
+      neededHashes: hashes.filter((h) => !existingSet.has(h))
     });
   } catch (error) {
     next(error);
@@ -64,8 +76,10 @@ router.post('/android/upload', upload.single('file'), async (req, res, next) => 
       return res.status(400).json({ success: false, error: 'No file uploaded' });
     }
 
-    const { folderName = 'Camera', clientHash } = req.body;
-    const originalName = Buffer.from(req.file.originalname, 'latin1').toString('utf8');
+    const folderName = (req.body.folderName || 'Camera').trim();
+    const clientHash = req.body.clientHash ? req.body.clientHash.trim() : null;
+    const rawOriginalName = req.file.originalname || 'upload';
+    const originalName = Buffer.from(rawOriginalName, 'latin1').toString('utf8');
 
     // 1. Ensure or find "Phone Backup" parent folder
     let rootBackupFolder = await Folder.findOne({
@@ -102,9 +116,24 @@ router.post('/android/upload', upload.single('file'), async (req, res, next) => 
       });
     }
 
+    // Fast deduplication check if hash provided
+    if (clientHash) {
+      const existingFile = await FileItem.findOne({
+        userId: req.user._id,
+        hash: clientHash,
+        isTrash: false
+      });
+      if (existingFile) {
+        if (req.file && (await fs.pathExists(req.file.path))) {
+          await fs.remove(req.file.path);
+        }
+        return res.status(200).json({ success: true, data: existingFile, deduplicated: true });
+      }
+    }
+
     // 3. Move file to permanent storage
     const ext = path.extname(originalName).replace('.', '').toLowerCase();
-    const uniqueName = `${Date.now()}_${Math.round(Math.random() * 1e9)}${path.extname(originalName)}`;
+    const uniqueName = `${Date.now()}_${Math.round(Math.random() * 1e9)}${path.extname(originalName) || (ext ? '.' + ext : '')}`;
     const relativePath = `${req.user._id}/PhoneBackup/${folderName}/${uniqueName}`;
     const fullTargetPath = path.join(MEDIA_DIR, relativePath);
 
@@ -112,24 +141,30 @@ router.post('/android/upload', upload.single('file'), async (req, res, next) => 
     await fs.move(req.file.path, fullTargetPath, { overwrite: true });
 
     const fileHash = clientHash || (await storageService.getHash(relativePath));
-    const mimeType = require('mime-types').lookup(originalName) || 'application/octet-stream';
+    const mimeType = req.file.mimetype || require('mime-types').lookup(originalName) || 'application/octet-stream';
     const category = storageService.determineCategory(mimeType, ext);
 
-    // Extract metadata
+    // Extract metadata safely
     let musicMeta = {};
     let videoMeta = {};
-    if (category === 'video') {
-      videoMeta = await mediaProbeService.probeVideo(fullTargetPath);
-    } else if (category === 'audio') {
-      musicMeta = await musicMetadataService.extractMetadata(fullTargetPath, originalName);
+    try {
+      if (category === 'video') {
+        videoMeta = await mediaProbeService.probeVideo(fullTargetPath);
+      } else if (category === 'audio') {
+        musicMeta = await musicMetadataService.extractMetadata(fullTargetPath, originalName);
+      }
+    } catch (metaErr) {
+      console.warn('[Sync] Metadata extraction warning:', metaErr.message);
     }
+
+    const fileSize = (await fs.stat(fullTargetPath)).size;
 
     const fileItem = await FileItem.create({
       name: originalName,
       originalName,
       virtualPath: `/Phone Backup/${folderName}/${originalName}`,
       storageRelativePath: relativePath,
-      size: (await fs.stat(fullTargetPath)).size,
+      size: fileSize,
       mimeType,
       extension: ext,
       hash: fileHash,
@@ -143,7 +178,9 @@ router.post('/android/upload', upload.single('file'), async (req, res, next) => 
     res.status(201).json({ success: true, data: fileItem });
   } catch (error) {
     if (req.file && fs.existsSync(req.file.path)) {
-      fs.removeSync(req.file.path);
+      try {
+        fs.removeSync(req.file.path);
+      } catch (e) {}
     }
     next(error);
   }

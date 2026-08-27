@@ -17,6 +17,9 @@ const { CLIENT_ORIGIN } = require('./config/env');
 
 const app = express();
 
+// Trust reverse proxy (Caddy / Tailscale)
+app.set('trust proxy', 1);
+
 // Enable CORS for web, mobile, and desktop clients
 app.use(
   cors({
@@ -39,8 +42,13 @@ const limiter = rateLimit({
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
-// Apply rate limiter to /api
-app.use('/api', limiter);
+// Apply rate limiter to /api (exempting media sync stream endpoints)
+app.use('/api', (req, res, next) => {
+  if (req.path.startsWith('/sync')) {
+    return next();
+  }
+  return limiter(req, res, next);
+});
 
 // Root health check
 app.get('/health', (req, res) => {

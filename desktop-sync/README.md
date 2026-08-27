@@ -28,7 +28,16 @@ This client **only** reads and writes to the one single folder you configure (e.
    - Your Nexora Username & Password
    - Your chosen local sync folder (e.g., `C:\Users\username\NexoraSync`)
 
-3. Start the background sync client:
+3. Enable Automatic Background Sync on Boot (No Terminal Needed):
    ```bash
-   npm start
+   npm run autostart:enable
    ```
+   Nexora will now run automatically in the background whenever your laptop turns on or logs in. No command prompt or terminal window will stay open!
+
+4. Useful Management Commands:
+   - Check sync status: `npm run autostart:status`
+   - View recent sync logs: `npm run autostart:logs`
+   - Stop background sync: `npm run stop:bg`
+   - Disable auto-start on boot: `npm run autostart:disable`
+   - Manual foreground run: `npm start`
+

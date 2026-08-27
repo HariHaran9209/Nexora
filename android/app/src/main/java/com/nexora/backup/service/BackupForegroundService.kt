@@ -35,7 +35,7 @@ class BackupForegroundService : Service() {
         val builder = NotificationCompat.Builder(this, NexoraApp.CHANNEL_ID)
             .setContentTitle("Nexora Camera Backup")
             .setContentText(text)
-            .setSmallIcon(android.R.drawable.stat_sys_upload)
+            .setSmallIcon(R.drawable.ic_sync_notification)
             .setOngoing(true)
             .setOnlyAlertOnce(true)
             .setPriority(NotificationCompat.PRIORITY_LOW)

@@ -135,23 +135,23 @@ export const FileGrid = ({ onRename, onMove, onDelete }) => {
       {/* Folders Section */}
       {folders.length > 0 && (
         <div>
-          <h3 className="text-xs font-bold uppercase tracking-wider text-zinc-400 mb-3">Folders</h3>
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
+          <h3 className="text-xs font-bold uppercase tracking-wider text-zinc-400 mb-2.5 sm:mb-3">Folders</h3>
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2 sm:gap-3">
             {folders.map((folder) => (
               <div
                 key={folder._id}
                 onDoubleClick={() => handleOpenFolder(folder._id)}
-                className="group relative flex items-center justify-between p-3 rounded-xl bg-[#18181b] hover:bg-[#222226] border border-white/5 hover:border-white/10 transition-all cursor-pointer shadow-sm"
+                className="group relative flex items-center justify-between p-2.5 sm:p-3 rounded-xl bg-[#18181b] hover:bg-[#222226] active:bg-[#26262b] border border-white/5 hover:border-white/10 transition-all cursor-pointer shadow-sm"
               >
                 <div
-                  className="flex items-center gap-3 min-w-0 flex-1"
+                  className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1"
                   onClick={() => handleOpenFolder(folder._id)}
                 >
-                  <Folder className="w-5 h-5 text-amber-400 shrink-0 fill-amber-400/20" />
-                  <span className="text-sm font-medium text-white truncate">{folder.name}</span>
+                  <Folder className="w-4 h-4 sm:w-5 sm:h-5 text-amber-400 shrink-0 fill-amber-400/20" />
+                  <span className="text-xs sm:text-sm font-medium text-white truncate">{folder.name}</span>
                 </div>
 
-                <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                <div className="flex items-center gap-0.5 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity shrink-0">
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
@@ -182,29 +182,29 @@ export const FileGrid = ({ onRename, onMove, onDelete }) => {
       {/* Files Section */}
       <div>
         {folders.length > 0 && files.length > 0 && (
-          <h3 className="text-xs font-bold uppercase tracking-wider text-zinc-400 mb-3">Files</h3>
+          <h3 className="text-xs font-bold uppercase tracking-wider text-zinc-400 mb-2.5 sm:mb-3">Files</h3>
         )}
 
         {files.length === 0 && folders.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-20 text-center">
-            <div className="w-16 h-16 rounded-2xl bg-white/5 flex items-center justify-center text-zinc-500 mb-4">
-              <Folder className="w-8 h-8" />
+          <div className="flex flex-col items-center justify-center py-16 sm:py-20 text-center px-4">
+            <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-white/5 flex items-center justify-center text-zinc-500 mb-4">
+              <Folder className="w-7 h-7 sm:w-8 sm:h-8" />
             </div>
-            <h4 className="text-base font-semibold text-white mb-1">This folder is empty</h4>
-            <p className="text-sm text-zinc-400 max-w-sm">
+            <h4 className="text-sm sm:text-base font-semibold text-white mb-1">This folder is empty</h4>
+            <p className="text-xs sm:text-sm text-zinc-400 max-w-sm">
               Drag and drop files here or click the Upload button to store them on your Arch laptop's 500GB HDD.
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2.5 sm:gap-4">
             {files.map((file) => (
               <div
                 key={file._id}
                 onClick={() => handleFileClick(file)}
-                className="group relative flex flex-col p-3 rounded-2xl bg-[#18181b] hover:bg-[#222226] border border-white/5 hover:border-white/10 transition-all duration-150 cursor-pointer shadow-sm"
+                className="group relative flex flex-col p-2.5 sm:p-3 rounded-2xl bg-[#18181b] hover:bg-[#222226] active:bg-[#26262b] border border-white/5 hover:border-white/10 transition-all duration-150 cursor-pointer shadow-sm"
               >
                 {/* Thumbnail / Icon Container */}
-                <div className="relative w-full aspect-square rounded-xl bg-[#121214] overflow-hidden flex items-center justify-center mb-3">
+                <div className="relative w-full aspect-square rounded-xl bg-[#121214] overflow-hidden flex items-center justify-center mb-2.5 sm:mb-3">
                   {renderIcon(file.category, file)}
 
                   {/* Favorite Button Overlay */}
@@ -213,7 +213,7 @@ export const FileGrid = ({ onRename, onMove, onDelete }) => {
                       e.stopPropagation();
                       toggleFavorite(file._id);
                     }}
-                    className={`absolute top-2 right-2 p-1.5 rounded-full backdrop-blur-md transition-all ${
+                    className={`absolute top-1.5 right-1.5 sm:top-2 sm:right-2 p-1.5 rounded-full backdrop-blur-md transition-all ${
                       file.isFavorite
                         ? 'bg-rose-500/20 text-rose-500 opacity-100'
                         : 'bg-black/50 text-white opacity-0 group-hover:opacity-100 hover:bg-rose-500/30'
@@ -229,11 +229,11 @@ export const FileGrid = ({ onRename, onMove, onDelete }) => {
                     <p className="text-xs font-semibold text-white truncate group-hover:text-emerald-400 transition-colors">
                       {file.name}
                     </p>
-                    <p className="text-[11px] text-zinc-400 mt-0.5">{formatFileSize(file.size)}</p>
+                    <p className="text-[10px] sm:text-[11px] text-zinc-400 mt-0.5">{formatFileSize(file.size)}</p>
                   </div>
 
                   {/* Action Menu Buttons */}
-                  <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <div className="flex items-center gap-0.5 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity shrink-0">
                     <a
                       href={`/api/stream/download/${file._id}?token=${localStorage.getItem('nexora_token')}`}
                       download

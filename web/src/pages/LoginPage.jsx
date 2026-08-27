@@ -34,12 +34,12 @@ export const LoginPage = () => {
   };
 
   return (
-    <div className="min-h-screen w-screen bg-[#09090b] flex items-center justify-center p-4 select-none relative overflow-hidden">
+    <div className="min-h-[100dvh] w-full bg-[#09090b] flex items-center justify-center p-4 select-none relative overflow-y-auto">
       {/* Dynamic Background Glows */}
       <div className="absolute -top-40 -left-40 w-96 h-96 bg-emerald-600/20 rounded-full blur-3xl pointer-events-none" />
       <div className="absolute -bottom-40 -right-40 w-96 h-96 bg-teal-600/20 rounded-full blur-3xl pointer-events-none" />
 
-      <div className="w-full max-w-md bg-[#121214]/90 backdrop-blur-2xl border border-white/10 p-8 sm:p-10 rounded-3xl shadow-2xl z-10">
+      <div className="w-full max-w-md bg-[#121214]/90 backdrop-blur-2xl border border-white/10 p-6 sm:p-10 rounded-2xl sm:rounded-3xl shadow-2xl z-10 my-auto">
         {/* Logo & Header */}
         <div className="flex flex-col items-center text-center mb-8">
           <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-emerald-500 to-teal-400 flex items-center justify-center text-black font-extrabold text-2xl shadow-xl shadow-emerald-500/20 mb-4">

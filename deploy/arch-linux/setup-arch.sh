@@ -29,7 +29,14 @@ if ! command -v mongod &> /dev/null; then
     fi
 fi
 
-# Enable & start MongoDB
+# Enable & configure MongoDB (workaround for Linux kernel 6.19+ SERVER-121912 rseq crash)
+sudo mkdir -p /etc/systemd/system/mongodb.service.d
+sudo bash -c 'cat <<EOF > /etc/systemd/system/mongodb.service.d/override.conf
+[Service]
+Environment="GLIBC_TUNABLES=glibc.pthread.rseq=1"
+EOF'
+sudo systemctl daemon-reload
+
 if systemctl list-unit-files | grep -q mongodb.service; then
     sudo systemctl enable --now mongodb.service
 fi

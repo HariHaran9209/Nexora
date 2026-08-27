@@ -12,7 +12,7 @@ export const Breadcrumbs = () => {
   };
 
   return (
-    <nav className="flex items-center gap-1.5 text-xs font-medium text-zinc-400 overflow-x-auto py-1">
+    <nav className="flex items-center gap-1 sm:gap-1.5 text-xs font-medium text-zinc-400 overflow-x-auto no-scrollbar py-1 max-w-full">
       {breadcrumbs.map((crumb, idx) => {
         const isLast = idx === breadcrumbs.length - 1;
 

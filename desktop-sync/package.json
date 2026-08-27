@@ -8,7 +8,13 @@
   },
   "scripts": {
     "start": "node src/index.js",
-    "setup": "node src/setup.js"
+    "setup": "node src/setup.js",
+    "autostart:enable": "node src/autostart.js enable",
+    "autostart:disable": "node src/autostart.js disable",
+    "autostart:status": "node src/autostart.js status",
+    "autostart:logs": "node src/autostart.js logs",
+    "start:bg": "node src/autostart.js start",
+    "stop:bg": "node src/autostart.js stop"
   },
   "keywords": ["sync", "nexora", "drive", "windows", "chokidar"],
   "author": "Nexora",

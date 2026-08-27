@@ -77,14 +77,19 @@ export const DriveProvider = ({ children }) => {
 
   // Initial load & socket listeners
   useEffect(() => {
-    fetchFiles();
-    refreshStorage();
+    const token = localStorage.getItem('nexora_token');
+    if (token) {
+      fetchFiles();
+      refreshStorage();
+    }
 
     const socket = getSocket();
     if (socket) {
       socket.on('file:refresh', () => {
-        fetchFiles();
-        refreshStorage();
+        if (localStorage.getItem('nexora_token')) {
+          fetchFiles();
+          refreshStorage();
+        }
       });
     }
 

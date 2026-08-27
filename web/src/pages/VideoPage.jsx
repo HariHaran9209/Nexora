@@ -56,18 +56,18 @@ export const VideoPage = () => {
   };
 
   return (
-    <div className="flex-1 flex flex-col h-full overflow-hidden p-6 select-none">
+    <div className="flex-1 flex flex-col h-full overflow-hidden p-3 sm:p-6 select-none">
       {/* Top Banner */}
-      <div className="relative rounded-3xl bg-gradient-to-r from-amber-950/40 via-orange-950/20 to-black/60 p-6 sm:p-8 border border-amber-500/10 mb-6 shrink-0 shadow-lg">
-        <div className="flex items-center gap-4">
-          <div className="w-16 h-16 rounded-2xl bg-amber-500 flex items-center justify-center text-black shadow-xl shadow-amber-500/20 shrink-0">
-            <Film className="w-8 h-8 stroke-[2.5]" />
+      <div className="relative rounded-2xl sm:rounded-3xl bg-gradient-to-r from-amber-950/40 via-orange-950/20 to-black/60 p-4 sm:p-6 md:p-8 border border-amber-500/10 mb-4 sm:mb-6 shrink-0 shadow-lg">
+        <div className="flex items-center gap-3 sm:gap-4">
+          <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-xl sm:rounded-2xl bg-amber-500 flex items-center justify-center text-black shadow-xl shadow-amber-500/20 shrink-0">
+            <Film className="w-6 h-6 sm:w-8 sm:h-8 stroke-[2.5]" />
           </div>
           <div>
-            <p className="text-xs font-bold uppercase tracking-widest text-amber-400">Cinema & Media</p>
-            <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">VLC Video Player</h1>
-            <p className="text-xs text-zinc-400 mt-0.5">
-              Direct-play video library with multi-audio & subtitle switching from your 500GB HDD
+            <p className="text-[10px] sm:text-xs font-bold uppercase tracking-widest text-amber-400">Cinema & Media</p>
+            <h1 className="text-xl sm:text-2xl md:text-3xl font-extrabold text-white tracking-tight">VLC Video Player</h1>
+            <p className="text-[11px] sm:text-xs text-zinc-400 mt-0.5">
+              Direct-play video library with multi-audio & subtitle switching
             </p>
           </div>
         </div>
@@ -76,17 +76,17 @@ export const VideoPage = () => {
       {/* Video Grid */}
       <div className="flex-1 overflow-y-auto pr-1">
         {videos.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-20 text-center">
-            <div className="w-16 h-16 rounded-2xl bg-white/5 flex items-center justify-center text-zinc-500 mb-4">
-              <Film className="w-8 h-8" />
+          <div className="flex flex-col items-center justify-center py-16 sm:py-20 text-center px-4">
+            <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-white/5 flex items-center justify-center text-zinc-500 mb-4">
+              <Film className="w-7 h-7 sm:w-8 sm:h-8" />
             </div>
-            <h4 className="text-base font-semibold text-white mb-1">No videos found</h4>
-            <p className="text-sm text-zinc-400 max-w-sm">
+            <h4 className="text-sm sm:text-base font-semibold text-white mb-1">No videos found</h4>
+            <p className="text-xs sm:text-sm text-zinc-400 max-w-sm">
               Upload videos in the Drive tab to watch them here with audio and subtitle switching.
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 xs:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-6">
             {videos.map((video) => {
               const audioCount = video.videoMeta?.audioStreams?.length || 0;
               const subCount = video.videoMeta?.subtitleStreams?.length || 0;
