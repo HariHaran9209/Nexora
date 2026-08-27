@@ -13,11 +13,14 @@ import {
   Check, 
   Terminal,
   Layers,
-  ArrowRight
+  ArrowRight,
+  Key
 } from 'lucide-react';
 import { syncApi } from '../services/api';
+import { useAuth } from '../context/AuthContext';
 
 export const SyncPage = () => {
+  const { token } = useAuth();
   const [androidStats, setAndroidStats] = useState(null);
   const [copiedKey, setCopiedKey] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -105,6 +108,35 @@ export const SyncPage = () => {
                 {formatSize(androidStats?.totalSizeBytes)}
               </p>
             </div>
+          </div>
+
+          {/* JWT Token Box */}
+          <div className="bg-[#121214] p-3 sm:p-4 rounded-xl sm:rounded-2xl border border-white/5 mb-4 sm:mb-6">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-[11px] sm:text-xs font-bold text-zinc-400 uppercase tracking-wider flex items-center gap-1.5">
+                <Key className="w-3.5 h-3.5 text-emerald-400" /> Your JWT Auth Token
+              </span>
+              <button
+                onClick={() => handleCopy(token, 'jwt_token')}
+                className="text-zinc-400 hover:text-white p-1 flex items-center gap-1 text-xs transition-colors"
+                title="Copy JWT Auth Token"
+              >
+                {copiedKey === 'jwt_token' ? (
+                  <>
+                    <Check className="w-3.5 h-3.5 text-emerald-400" />
+                    <span className="text-emerald-400 font-semibold text-[11px]">Copied!</span>
+                  </>
+                ) : (
+                  <>
+                    <Copy className="w-3.5 h-3.5" />
+                    <span className="text-[11px]">Copy Token</span>
+                  </>
+                )}
+              </button>
+            </div>
+            <code className="text-[10px] font-mono text-emerald-300/90 block bg-black/40 p-2.5 rounded-lg break-all whitespace-pre-wrap max-h-20 overflow-y-auto select-all">
+              {token || 'Sign in to view your token'}
+            </code>
           </div>
 
           {/* Android App Setup Steps */}

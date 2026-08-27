@@ -115,6 +115,50 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
+        binding.btnTestConnection.setOnClickListener {
+            val serverUrl = binding.etServerUrl.text.toString().trim()
+            val authToken = binding.etAuthToken.text.toString().trim()
+
+            prefs.serverUrl = serverUrl
+            prefs.authToken = authToken
+
+            if (authToken.isEmpty()) {
+                Toast.makeText(this, "Enter a JWT token or tap 'Log In...'", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+
+            binding.btnTestConnection.isEnabled = false
+            binding.btnTestConnection.text = "Testing..."
+
+            lifecycleScope.launch(Dispatchers.IO) {
+                try {
+                    val api = com.nexora.backup.data.ApiClient.getService(this@MainActivity)
+                    val res = api.checkHashes(com.nexora.backup.data.CheckHashesRequest(emptyList()))
+                    withContext(Dispatchers.Main) {
+                        binding.btnTestConnection.isEnabled = true
+                        binding.btnTestConnection.text = "Test Connection"
+                        if (res.isSuccessful) {
+                            Toast.makeText(this@MainActivity, "✅ Connection successful! Token is valid.", Toast.LENGTH_SHORT).show()
+                        } else if (res.code() == 401) {
+                            Toast.makeText(this@MainActivity, "❌ HTTP 401: Invalid or Expired Token. Tap 'Log In...' to get a fresh token.", Toast.LENGTH_LONG).show()
+                        } else {
+                            Toast.makeText(this@MainActivity, "⚠️ Server returned HTTP ${res.code()}", Toast.LENGTH_LONG).show()
+                        }
+                    }
+                } catch (e: Exception) {
+                    withContext(Dispatchers.Main) {
+                        binding.btnTestConnection.isEnabled = true
+                        binding.btnTestConnection.text = "Test Connection"
+                        Toast.makeText(this@MainActivity, "❌ Cannot reach server: ${e.localizedMessage}", Toast.LENGTH_LONG).show()
+                    }
+                }
+            }
+        }
+
+        binding.btnLogin.setOnClickListener {
+            showLoginDialog()
+        }
+
         binding.btnSyncNow.setOnClickListener {
             try {
                 // Save inputs
@@ -125,7 +169,7 @@ class MainActivity : AppCompatActivity() {
                 prefs.authToken = authToken
 
                 if (authToken.isEmpty()) {
-                    Toast.makeText(this, "Please enter your JWT Auth Token first.", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this, "Please enter your JWT Auth Token or tap 'Log In...'.", Toast.LENGTH_SHORT).show()
                     return@setOnClickListener
                 }
 
@@ -177,6 +221,51 @@ class MainActivity : AppCompatActivity() {
                 Toast.makeText(this, "Failed to start sync: ${e.localizedMessage}", Toast.LENGTH_LONG).show()
             }
         }
+    }
+
+    private fun showLoginDialog() {
+        val dialogView = layoutInflater.inflate(R.layout.dialog_login, null)
+        val etUsername = dialogView.findViewById<com.google.android.material.textfield.TextInputEditText>(R.id.dialogEtUsername)
+        val etPassword = dialogView.findViewById<com.google.android.material.textfield.TextInputEditText>(R.id.dialogEtPassword)
+
+        com.google.android.material.dialog.MaterialAlertDialogBuilder(this)
+            .setView(dialogView)
+            .setPositiveButton("Log In") { dialog, _ ->
+                val identifier = etUsername.text.toString().trim()
+                val password = etPassword.text.toString()
+
+                if (identifier.isEmpty() || password.isEmpty()) {
+                    Toast.makeText(this, "Username and password required.", Toast.LENGTH_SHORT).show()
+                    return@setPositiveButton
+                }
+
+                prefs.serverUrl = binding.etServerUrl.text.toString().trim()
+                Toast.makeText(this, "Signing in...", Toast.LENGTH_SHORT).show()
+
+                lifecycleScope.launch(Dispatchers.IO) {
+                    try {
+                        val api = com.nexora.backup.data.ApiClient.getService(this@MainActivity)
+                        val res = api.login(com.nexora.backup.data.LoginRequest(identifier, password))
+                        withContext(Dispatchers.Main) {
+                            if (res.isSuccessful && res.body()?.token?.isNotEmpty() == true) {
+                                val token = res.body()!!.token
+                                prefs.authToken = token
+                                binding.etAuthToken.setText(token)
+                                Toast.makeText(this@MainActivity, "✅ Logged in successfully! Token updated.", Toast.LENGTH_SHORT).show()
+                                loadStats()
+                            } else {
+                                Toast.makeText(this@MainActivity, "❌ Login failed: Invalid username or password", Toast.LENGTH_LONG).show()
+                            }
+                        }
+                    } catch (e: Exception) {
+                        withContext(Dispatchers.Main) {
+                            Toast.makeText(this@MainActivity, "❌ Sign in error: ${e.localizedMessage}", Toast.LENGTH_LONG).show()
+                        }
+                    }
+                }
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
     }
 
     private fun loadStats() {

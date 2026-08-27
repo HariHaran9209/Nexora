@@ -27,7 +27,13 @@ object ApiClient {
             val original = chain.request()
             val requestBuilder = original.newBuilder()
 
-            val token = prefs.authToken.trim()
+            var token = prefs.authToken.trim()
+            // Strip quotes and Bearer prefix if user copied raw header or JSON value
+            token = token.trim('"', '\'')
+            if (token.startsWith("Bearer ", ignoreCase = true)) {
+                token = token.substring(7).trim()
+            }
+
             if (token.isNotEmpty()) {
                 requestBuilder.header("Authorization", "Bearer $token")
             }
