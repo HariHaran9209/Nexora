@@ -1,6 +1,6 @@
 {
-  "serverUrl": "http://100.124.30.77/",
-  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjZhOGYzZTc1MjVkODg1ZjkwYWU0NDIzOCIsImlhdCI6MTc4Nzc3MzgyOSwiZXhwIjoxNzkwMzY1ODI5fQ.DcdYMOeV7CqAb1BCxspdPI_ho5HrVOpgwjXJ57mdIPw",
+  "serverUrl": "http://100.69.2.96/",
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjZhOTE2MTYwNTI3OGM4ZDgyYjgxNDIyNCIsImlhdCI6MTc4NzkxMzgwOSwiZXhwIjoxNzkwNTA1ODA5fQ.vuPRVF3j-N7GKu-Xet_DMiPliSRJFqCa2t_7P_MSQAg",
   "syncFolderPath": "D:\\Muthukumar\\Mine",
   "deviceId": "windows_11_client_eisidg",
   "pollIntervalMs": 15000

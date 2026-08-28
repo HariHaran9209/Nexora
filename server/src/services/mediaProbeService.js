@@ -14,7 +14,7 @@ class MediaProbeService {
   /**
    * Probes video file with ffprobe to extract audio streams, subtitles, and video dimensions
    */
-  async probeVideo(fullFilePath) {
+  async probeVideo(fullFilePath, knownHash = null) {
     return new Promise((resolve) => {
       ffmpeg.ffprobe(fullFilePath, async (err, metadata) => {
         if (err) {
@@ -82,7 +82,7 @@ class MediaProbeService {
           let thumbnailFilename = null;
 
           try {
-            const fileHash = await calculateFileHash(fullFilePath);
+            const fileHash = knownHash || (await calculateFileHash(fullFilePath));
             thumbnailFilename = `thumb_${fileHash}.jpg`;
             const thumbPath = path.join(THUMBNAILS_DIR, thumbnailFilename);
 

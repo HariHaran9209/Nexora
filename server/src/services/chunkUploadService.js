@@ -81,6 +81,7 @@ class ChunkUploadService {
    * Assembles all chunks in order into the final storage destination
    */
   async assembleFile(uploadId, targetRelativePath) {
+    const crypto = require('crypto');
     const sessionDir = this.getUploadSessionDir(uploadId);
     if (!(await fs.pathExists(sessionDir))) {
       throw new Error('Upload session not found');
@@ -92,21 +93,27 @@ class ChunkUploadService {
     const fullTargetPath = path.join(MEDIA_DIR, targetRelativePath);
     await fs.ensureDir(path.dirname(fullTargetPath));
 
-    const writeStream = fs.createWriteStream(fullTargetPath);
     const files = await fs.readdir(sessionDir);
     const chunkFiles = files
       .filter((f) => f.startsWith('part_'))
       .sort();
 
     if (chunkFiles.length !== meta.totalChunks) {
-      writeStream.close();
       throw new Error(`Incomplete upload: expected ${meta.totalChunks} chunks, found ${chunkFiles.length}`);
     }
+
+    const hashObj = crypto.createHash('sha256');
+    const writeStream = fs.createWriteStream(fullTargetPath);
 
     for (const chunkFile of chunkFiles) {
       const chunkFilePath = path.join(sessionDir, chunkFile);
       const chunkData = await fs.readFile(chunkFilePath);
-      writeStream.write(chunkData);
+      hashObj.update(chunkData);
+
+      const canContinue = writeStream.write(chunkData);
+      if (!canContinue) {
+        await new Promise((resolve) => writeStream.once('drain', resolve));
+      }
     }
 
     await new Promise((resolve, reject) => {
@@ -115,8 +122,8 @@ class ChunkUploadService {
       writeStream.on('error', reject);
     });
 
-    // Calculate SHA-256 of assembled file
-    const hash = await calculateFileHash(fullTargetPath);
+    // In-flight computed SHA-256 hash (eliminates 2nd heavy multi-GB disk read)
+    const hash = hashObj.digest('hex');
     const stat = await fs.stat(fullTargetPath);
 
     // Clean up temporary chunk folder

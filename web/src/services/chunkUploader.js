@@ -58,8 +58,29 @@ export class ChunkUploader {
         const end = Math.min(this.file.size, start + this.chunkSize);
         const chunkBlob = this.file.slice(start, end);
 
-        // Upload chunk
-        await uploadApi.uploadChunk(this.uploadId, chunkIndex, chunkBlob);
+        // Upload chunk with automatic retry on network drops
+        let uploaded = false;
+        let attempts = 0;
+        const maxAttempts = 3;
+
+        while (!uploaded && attempts < maxAttempts) {
+          if (this.isCancelled || this.isPaused) break;
+          try {
+            await uploadApi.uploadChunk(this.uploadId, chunkIndex, chunkBlob);
+            uploaded = true;
+          } catch (chunkErr) {
+            attempts++;
+            if (attempts >= maxAttempts) {
+              throw chunkErr;
+            }
+            // Exponential backoff wait (1s, 2s)
+            await new Promise((resolve) => setTimeout(resolve, attempts * 1000));
+          }
+        }
+
+        if (this.isCancelled || this.isPaused) {
+          return null;
+        }
 
         bytesUploaded += (end - start);
         const percent = Math.min(99, Math.round((bytesUploaded / this.file.size) * 100));

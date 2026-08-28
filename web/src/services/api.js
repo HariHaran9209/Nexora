@@ -48,19 +48,29 @@ export const uploadApi = {
   uploadSingle: (formData, onProgress) =>
     api.post('/upload/single', formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
-      onUploadProgress: onProgress
+      onUploadProgress: onProgress,
+      timeout: 0 // Unlimited timeout for file uploads
     }),
   initChunk: (filename, totalSize, totalChunks, parentFolderId) =>
-    api.post('/upload/chunk/init', { filename, totalSize, totalChunks, parentFolderId }),
+    api.post('/upload/chunk/init', { filename, totalSize, totalChunks, parentFolderId }, { timeout: 30000 }),
   uploadChunk: (uploadId, chunkIndex, chunkBlob) => {
     const data = new FormData();
     data.append('uploadId', uploadId);
     data.append('chunkIndex', chunkIndex);
     data.append('chunk', chunkBlob);
-    return api.post('/upload/chunk/upload', data);
+    return api.post('/upload/chunk/upload', data, {
+      timeout: 120000 // 2 minutes per 5MB chunk
+    });
   },
-  getChunkStatus: (uploadId) => api.get(`/upload/chunk/status/${uploadId}`),
-  completeChunk: (uploadId, parentFolderId) => api.post('/upload/chunk/complete', { uploadId, parentFolderId }),
+  getChunkStatus: (uploadId) => api.get(`/upload/chunk/status/${uploadId}`, { timeout: 30000 }),
+  completeChunk: (uploadId, parentFolderId) =>
+    api.post(
+      '/upload/chunk/complete',
+      { uploadId, parentFolderId },
+      {
+        timeout: 0 // Unlimited timeout for assembling multi-gigabyte video files on HDD
+      }
+    ),
   cancelChunk: (uploadId) => api.post('/upload/chunk/cancel', { uploadId })
 };
 

@@ -5,6 +5,7 @@ const multer = require('multer');
 const path = require('path');
 const fs = require('fs-extra');
 const { v4: uuidv4 } = require('uuid');
+const mongoose = require('mongoose');
 
 const authMiddleware = require('../middlewares/authMiddleware');
 const FileItem = require('../models/FileItem');
@@ -29,6 +30,7 @@ const diskStorage = multer.diskStorage({
       fs.ensureDirSync(targetDir);
       cb(null, targetDir);
     } catch (err) {
+      console.error('[Upload Destination Error]', err);
       cb(err);
     }
   },
@@ -51,7 +53,13 @@ router.post('/single', diskUpload.single('file'), async (req, res, next) => {
     }
 
     const { parentFolderId = null } = req.body;
-    const originalName = Buffer.from(req.file.originalname, 'latin1').toString('utf8');
+    let originalName = req.file.originalname;
+    try {
+      originalName = Buffer.from(req.file.originalname, 'latin1').toString('utf8');
+    } catch (e) {
+      // Fallback to raw originalname
+    }
+
     const ext = path.extname(originalName).replace('.', '').toLowerCase();
     const mimeType = req.file.mimetype || 'application/octet-stream';
     const category = storageService.determineCategory(mimeType, ext);
@@ -59,22 +67,36 @@ router.post('/single', diskUpload.single('file'), async (req, res, next) => {
 
     const fileHash = await storageService.getHash(relativePath);
 
-    // Metadata extraction
+    // Metadata extraction (resilient against parsing failures)
     let musicMeta = {};
     let videoMeta = {};
 
-    if (category === 'audio') {
-      musicMeta = await musicMetadataService.extractMetadata(req.file.path, originalName);
-    } else if (category === 'video') {
-      videoMeta = await mediaProbeService.probeVideo(req.file.path);
+    try {
+      if (category === 'audio') {
+        musicMeta = await musicMetadataService.extractMetadata(req.file.path, originalName);
+      } else if (category === 'video') {
+        videoMeta = await mediaProbeService.probeVideo(req.file.path, fileHash);
+      }
+    } catch (metaErr) {
+      console.warn('[Metadata Warning]', metaErr.message);
     }
 
-    // Determine virtual path
+    // Determine virtual path and parentFolderId safely
     let virtualPath = `/${originalName}`;
-    if (parentFolderId && parentFolderId !== 'root') {
+    let validParentFolderId = null;
+
+    if (
+      parentFolderId &&
+      parentFolderId !== 'root' &&
+      parentFolderId !== 'null' &&
+      parentFolderId !== 'undefined' &&
+      parentFolderId !== '' &&
+      mongoose.Types.ObjectId.isValid(parentFolderId)
+    ) {
       const parent = await Folder.findOne({ _id: parentFolderId, userId: req.user._id });
       if (parent) {
         virtualPath = `${parent.virtualPath}/${originalName}`.replace(/\/+/g, '/');
+        validParentFolderId = parent._id;
       }
     }
 
@@ -89,13 +111,14 @@ router.post('/single', diskUpload.single('file'), async (req, res, next) => {
       hash: fileHash,
       category,
       userId: req.user._id,
-      parentFolderId: parentFolderId && parentFolderId !== 'root' ? parentFolderId : null,
+      parentFolderId: validParentFolderId,
       musicMeta,
       videoMeta
     });
 
     res.status(201).json({ success: true, data: fileItem });
   } catch (error) {
+    console.error('[Upload Single Error]', error);
     next(error);
   }
 });
@@ -195,19 +218,32 @@ router.post('/chunk/complete', async (req, res, next) => {
     let musicMeta = {};
     let videoMeta = {};
 
-    if (category === 'audio') {
-      musicMeta = await musicMetadataService.extractMetadata(assembleResult.finalPath, originalName);
-    } else if (category === 'video') {
-      videoMeta = await mediaProbeService.probeVideo(assembleResult.finalPath);
+    try {
+      if (category === 'audio') {
+        musicMeta = await musicMetadataService.extractMetadata(assembleResult.finalPath, originalName);
+      } else if (category === 'video') {
+        videoMeta = await mediaProbeService.probeVideo(assembleResult.finalPath, assembleResult.hash);
+      }
+    } catch (metaErr) {
+      console.warn('[Chunk Metadata Warning]', metaErr.message);
     }
 
-    // Determine virtual path
+    // Determine virtual path and parentFolderId safely
     let virtualPath = `/${originalName}`;
-    const targetFolderId = parentFolderId && parentFolderId !== 'root' ? parentFolderId : null;
-    if (targetFolderId) {
-      const parent = await Folder.findOne({ _id: targetFolderId, userId: req.user._id });
+    let targetFolderId = null;
+
+    if (
+      parentFolderId &&
+      parentFolderId !== 'root' &&
+      parentFolderId !== 'null' &&
+      parentFolderId !== 'undefined' &&
+      parentFolderId !== '' &&
+      mongoose.Types.ObjectId.isValid(parentFolderId)
+    ) {
+      const parent = await Folder.findOne({ _id: parentFolderId, userId: req.user._id });
       if (parent) {
         virtualPath = `${parent.virtualPath}/${originalName}`.replace(/\/+/g, '/');
+        targetFolderId = parent._id;
       }
     }
 
@@ -229,6 +265,7 @@ router.post('/chunk/complete', async (req, res, next) => {
 
     res.status(201).json({ success: true, data: fileItem });
   } catch (error) {
+    console.error('[Upload Chunk Complete Error]', error);
     next(error);
   }
 });
