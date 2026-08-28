@@ -1,14 +1,17 @@
 # Nexora — Arch Linux Server Deployment Guide
 
-This guide walks you through setting up and running **Nexora** on your dedicated **Arch Linux laptop** (AMD PRO A4-4350B, 500GB HDD).
+This guide walks you through setting up and running **Nexora** on your dedicated **Arch Linux laptop** (AMD PRO A4-4350B, 50GB OS Root + 365GB Storage Partition at `/run/media/hariharan9209/Mine`).
 
 ---
 
-## 💻 Hardware Context & Performance Decisions
+## 💻 Hardware & Storage Architecture
 
-- **Hardware Profile**: AMD PRO A4-4350B APU, weak integrated Radeon R4 GPU, 500GB 5400RPM HDD.
+- **Hardware Profile**: AMD PRO A4-4350B APU, integrated Radeon R4 GPU.
+- **Partition Layout**:
+  - **OS Root Partition (50GB)**: Hosts the operating system, MongoDB binaries, and Nexora application server/web build at `/var/nexora` (~200MB).
+  - **Data Storage Partition (365GB at `/run/media/hariharan9209/Mine`)**: Dedicated storage for all uploaded files, video/audio media, chunk caches, thumbnails, and subtitle caches at `/run/media/hariharan9209/Mine/nexora_storage`.
 - **Key Architectural Rules**:
-  - **No Real-Time Re-Encoding**: All media files (audio/video) are served via direct HTTP 206 Byte-Range requests and container remuxing, completely avoiding CPU-exhausting live video transcode cycles.
+  - **No Real-Time Re-Encoding**: All media files are served via direct HTTP 206 Byte-Range requests and container remuxing, completely avoiding CPU-exhausting live video transcode cycles.
   - **Metadata Offloading**: ID3 audio tags (`music-metadata`) and video streams (`ffprobe`) are inspected once at upload time and indexed into MongoDB.
   - **Asynchronous Disk I/O**: Chunk assembly and thumbnail extraction run asynchronously to keep the main Express HTTP thread responsive.
 
@@ -16,7 +19,7 @@ This guide walks you through setting up and running **Nexora** on your dedicated
 
 ## 🚀 Quick Automated Installation
 
-We provide an automated setup script that configures everything on Arch Linux:
+We provide an automated setup script that configures everything on Arch Linux and automatically sets up storage on your 365GB partition:
 
 ```bash
 chmod +x deploy/arch-linux/setup-arch.sh
@@ -45,25 +48,52 @@ yay -S mongodb-bin
 sudo systemctl enable --now mongodb.service
 ```
 
-### 3. Initialize Dedicated System User and Storage
+### 3. Initialize Dedicated System User and 365GB Storage
 
-Create a dedicated `nexora` user and mount your 500GB HDD storage partition:
+Create the `nexora` system user and initialize the storage directories on your **365GB partition** (`/run/media/hariharan9209/Mine`):
 
 ```bash
+# Create dedicated system user
 sudo useradd -r -s /bin/false -d /var/nexora nexora
-sudo mkdir -p /var/nexora/storage/files
-sudo mkdir -p /var/nexora/storage/.chunks
-sudo mkdir -p /var/nexora/storage/.thumbnails
-sudo mkdir -p /var/nexora/storage/.subtitles_cache
-sudo chown -R nexora:nexora /var/nexora
+
+# Create storage directory structure on 365GB partition
+sudo mkdir -p /run/media/hariharan9209/Mine/nexora_storage/files
+sudo mkdir -p /run/media/hariharan9209/Mine/nexora_storage/.chunks
+sudo mkdir -p /run/media/hariharan9209/Mine/nexora_storage/.thumbnails
+sudo mkdir -p /run/media/hariharan9209/Mine/nexora_storage/.subtitles_cache
+
+# Set permissions for nexora user to access and write to the partition
+sudo chown -R nexora:nexora /run/media/hariharan9209/Mine/nexora_storage
+sudo chmod -R 775 /run/media/hariharan9209/Mine/nexora_storage
+sudo chmod o+rx /run/media/hariharan9209
 ```
 
-### 4. Build and Install Nexora
+> **Tip for Persistent Boot Mount**:
+> If `/run/media/hariharan9209/Mine` is mounted dynamically by your desktop environment, ensure it mounts on headless boot by adding it to `/etc/fstab` (or keeping your desktop session auto-login active).
+
+### 4. Build and Install Nexora Application
+
+Install the application codebase to `/var/nexora` (on your 50GB OS partition):
 
 ```bash
+# Create application directories
+sudo mkdir -p /var/nexora/server
+sudo mkdir -p /var/nexora/web
+
 # Copy files
-sudo cp -r server /var/nexora/
-sudo cp -r web /var/nexora/
+sudo cp -r server/* /var/nexora/server/
+sudo cp -r web/* /var/nexora/web/
+
+# Configure Environment
+sudo bash -c 'cat <<EOF > /var/nexora/server/.env
+PORT=5000
+HOST=0.0.0.0
+STORAGE_ROOT=/run/media/hariharan9209/Mine/nexora_storage
+MONGO_URI=mongodb://127.0.0.1:27017/nexora
+JWT_SECRET=nexora_super_secret_jwt_key_arch_linux_2026
+NODE_ENV=production
+CLIENT_ORIGIN=*
+EOF'
 
 # Install server dependencies
 cd /var/nexora/server
@@ -74,16 +104,16 @@ cd /var/nexora/web
 sudo npm install
 sudo npm run build
 
-# Set permissions
+# Set application permissions
 sudo chown -R nexora:nexora /var/nexora
 ```
 
 ### 5. Configure Systemd Service
 
-Copy the systemd service file:
+Copy and enable the systemd service (configured with `STORAGE_ROOT=/run/media/hariharan9209/Mine/nexora_storage`):
 
 ```bash
-sudo cp /var/nexora/server/../deploy/arch-linux/nexora-server.service /etc/systemd/system/
+sudo cp deploy/arch-linux/nexora-server.service /etc/systemd/system/
 sudo systemctl daemon-reload
 sudo systemctl enable --now nexora-server.service
 ```
@@ -140,4 +170,4 @@ tailscale ip -4
    http://100.85.120.44:5000
    ```
    (Tap "Add to Home Screen" for a full-screen native Spotify PWA experience).
-3. Install the **Nexora Backup APK** (from `/android`) to automatically back up your camera photos and videos in the background over Wi-Fi!
+3. Install the **Nexora Backup APK** (from `/android`) to automatically back up your camera photos and videos in the background over Wi-Fi directly to your 365GB partition!

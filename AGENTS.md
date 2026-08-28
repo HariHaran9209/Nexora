@@ -62,7 +62,7 @@ PORT=5000
 HOST=0.0.0.0
 MONGO_URI=mongodb://127.0.0.1:27017/nexora
 JWT_SECRET=<strong-random-secret>
-STORAGE_ROOT=/var/nexora/storage  # or ./storage_data for dev
+STORAGE_ROOT=/run/media/hariharan9209/Mine/nexora_storage  # or ./storage_data for dev
 CLIENT_ORIGIN=http://100.x.y.z:5173  # Tailscale IP of frontend
 ```
 

@@ -14,7 +14,7 @@ RestartSec=5s
 Environment=NODE_ENV=production
 Environment=PORT=5000
 Environment=HOST=0.0.0.0
-Environment=STORAGE_ROOT=/var/nexora/storage
+Environment=STORAGE_ROOT=/run/media/hariharan9209/Mine/nexora_storage
 Environment=MONGO_URI=mongodb://127.0.0.1:27017/nexora
 EnvironmentFile=-/var/nexora/server/.env
 
@@ -23,6 +23,7 @@ ProtectSystem=full
 ProtectHome=read-only
 PrivateTmp=true
 NoNewPrivileges=true
+ReadWritePaths=/run/media/hariharan9209/Mine/nexora_storage /var/nexora
 
 # Resource limits (optimized for AMD PRO A4-4350B laptop)
 LimitNOFILE=65536

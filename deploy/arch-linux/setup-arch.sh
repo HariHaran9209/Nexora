@@ -47,18 +47,31 @@ if ! id "nexora" &>/dev/null; then
     sudo useradd -r -s /bin/false -d /var/nexora nexora
 fi
 
-# 4. Setup directories on 500GB HDD storage partition
-echo "[4/6] Initializing storage directories at /var/nexora/storage..."
-sudo mkdir -p /var/nexora/storage/files
-sudo mkdir -p /var/nexora/storage/.chunks
-sudo mkdir -p /var/nexora/storage/.thumbnails
-sudo mkdir -p /var/nexora/storage/.subtitles_cache
+# 4. Setup directories on 365GB storage partition (/run/media/hariharan9209/Mine)
+STORAGE_ROOT="${STORAGE_ROOT:-/run/media/hariharan9209/Mine/nexora_storage}"
+echo "[4/6] Initializing storage directories at ${STORAGE_ROOT}..."
+
+sudo mkdir -p "${STORAGE_ROOT}/files"
+sudo mkdir -p "${STORAGE_ROOT}/.chunks"
+sudo mkdir -p "${STORAGE_ROOT}/.thumbnails"
+sudo mkdir -p "${STORAGE_ROOT}/.subtitles_cache"
 sudo mkdir -p /var/nexora/server
 sudo mkdir -p /var/nexora/web
 
-# Copy files
+# Copy application files to OS root (/var/nexora)
 sudo cp -r server/* /var/nexora/server/
 sudo cp -r web/* /var/nexora/web/
+
+# Generate production .env file
+sudo bash -c "cat <<EOF > /var/nexora/server/.env
+PORT=5000
+HOST=0.0.0.0
+STORAGE_ROOT=${STORAGE_ROOT}
+MONGO_URI=mongodb://127.0.0.1:27017/nexora
+JWT_SECRET=nexora_super_secret_jwt_key_arch_linux_2026
+NODE_ENV=production
+CLIENT_ORIGIN=*
+EOF"
 
 # Build Web frontend
 cd /var/nexora/web
@@ -71,6 +84,11 @@ sudo npm install --production
 
 # Fix permissions
 sudo chown -R nexora:nexora /var/nexora
+sudo chown -R nexora:nexora "${STORAGE_ROOT}"
+sudo chmod -R 775 "${STORAGE_ROOT}"
+if [ -d "/run/media/hariharan9209" ]; then
+    sudo chmod o+rx /run/media/hariharan9209 || true
+fi
 
 # 5. Setup systemd service & Caddy
 echo "[5/6] Configuring systemd services..."
